@@ -229,7 +229,7 @@ async def create_cross_review_workflow():
     )
 
     # 终止条件
-    termination = TextMentionTermination("REVIEWER_APPROVED") | MaxMessageTermination(1)
+    termination = TextMentionTermination("REVIEWER_APPROVED") | MaxMessageTermination(3)
 
     # RoundRobin 支持循环
     team = RoundRobinGroupChat(
