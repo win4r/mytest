@@ -40,6 +40,17 @@ async def run_claude_generate(
             )
             await init_proc.communicate()
 
+        # 验证 Claude CLI 是否可用
+        check = await asyncio.create_subprocess_exec(
+            "which", "claude",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        await check.communicate()
+
+        if check.returncode != 0:
+            return "⚠️ Claude CLI 未找到\n\n检查: which claude\n安装: 请参考 Claude CLI 官方指南"
+
         # Claude 生成代码
         process = await asyncio.create_subprocess_exec(
             "claude",
@@ -103,8 +114,8 @@ async def run_codex_review(
             review_result = stdout.decode()
 
             # 检查是否通过
-            if any(word in review_result.lower() for word in ["lgtm", "looks good", "approved", "no issues", "pass"]):
-                return f"✅ APPROVE - Codex 审查通过\n\n{review_result}"
+            if re.search(r"\b(lgtm|looks good|approved|approve|no issues)\b", review_result, re.IGNORECASE):
+                return f"✅ REVIEWER_APPROVED - Codex 审查通过\n\n{review_result}"
             else:
                 return f"📋 Codex 审查报告\n\n{review_result}"
         else:
@@ -126,6 +137,16 @@ async def run_claude_fix(
     try:
         import os
         cwd = os.getcwd()
+
+        check = await asyncio.create_subprocess_exec(
+            "which", "claude",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        await check.communicate()
+
+        if check.returncode != 0:
+            return "⚠️ Claude CLI 未找到\n\n检查: which claude\n安装: 请参考 Claude CLI 官方指南"
 
         process = await asyncio.create_subprocess_exec(
             "claude",
@@ -165,6 +186,8 @@ async def create_cross_review_workflow():
 1. 调用 run_claude_generate 生成代码
 2. 报告生成的文件路径
 
+限制：不要在回复中输出 REVIEWER_APPROVED 关键字。
+
 只在首次调用工具。"""
     )
 
@@ -181,7 +204,7 @@ async def create_cross_review_workflow():
    - 需要的输出格式
 2. 调用 run_codex_review
 3. 分析结果：
-   - 如果看到 "APPROVE"，输出 "APPROVE - 审查通过"
+   - 如果看到 "REVIEWER_APPROVED"，输出 "REVIEWER_APPROVED - 审查通过"
    - 如果有问题，输出 "发现问题: [总结]"
 
 重要：Codex 会自动检测 git diff 和运行测试，无需额外操作。"""
@@ -200,11 +223,13 @@ async def create_cross_review_workflow():
 3. 调用 run_claude_fix
 4. 报告修复结果
 
+限制：不要在回复中输出 REVIEWER_APPROVED 关键字。
+
 不要自己判断是否通过，让审查员决定。"""
     )
 
     # 终止条件
-    termination = TextMentionTermination("APPROVE") | MaxMessageTermination(20)
+    termination = TextMentionTermination("REVIEWER_APPROVED") | MaxMessageTermination(1)
 
     # RoundRobin 支持循环
     team = RoundRobinGroupChat(
