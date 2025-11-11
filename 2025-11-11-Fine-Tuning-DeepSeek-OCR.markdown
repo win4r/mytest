@@ -17,8 +17,8 @@ author_profile: true
 
 > 
 🚀本篇笔记所对应的视频：
-- [👉👉👉 通过哔哩哔哩观看](https://www.bilibili.com/video/BV1R2sZzYE5T/)
-- [👉👉👉 通过YouTube观看](https://youtu.be/K6-sR__mA3s)
+- [👉👉👉 通过哔哩哔哩观看](https://www.bilibili.com/video/BV1hPkyB2EJE/)
+- [👉👉👉 通过YouTube观看](https://youtu.be/QpCj4LAMYJg)
 - [👉👉👉 Subagents视频](https://youtu.be/GjlkRcNNONo)
 - [👉👉👉 Gemini CLI视频](https://youtu.be/v41xKxZmygU)
 - [👉👉👉 Context Engineering视频](https://youtu.be/oEZ7aN7jOEI)
