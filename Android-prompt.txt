@@ -1,0 +1,240 @@
+# Android 原生背单词应用开发需求
+
+请使用 Kotlin 和 Jetpack Compose 创建一个功能完整的 Android 背单词应用。
+
+## 应用概述
+- **应用名称**：LingoLearn
+- **目标用户**：英语学习者
+- **最低支持版本**：Android 8.0 (API 26)
+- **目标SDK版本**：Android 14 (API 34)
+- **主要功能**：单词学习、练习测试、学习进度追踪、数据持久化
+
+## 技术要求
+- 使用 Kotlin 1.9+ 和 Jetpack Compose 框架
+- 遵循 MVVM 架构模式，结合 Clean Architecture 分层
+- 使用 Room Database 进行本地数据持久化
+- 使用 Android TextToSpeech (TTS) 实现单词发音功能
+- 支持 Material You 动态主题及深色/浅色模式
+- 遵循 Material Design 3 设计规范
+- 使用 Kotlin Coroutines + Flow 处理异步操作
+- 使用 Hilt 进行依赖注入
+
+## 界面结构
+
+### 主导航栏 (BottomNavigation + NavHost)
+- **首页**：单词学习卡片，今日学习目标
+- **练习**：各类练习题目入口
+- **进度**：学习统计和成就展示
+- **设置**：应用配置和个人信息
+
+### 导航结构
+- 使用 Navigation Compose 实现页面导航
+- 顶部显示当前学习进度条（LinearProgressIndicator）
+- 支持系统返回手势和返回键
+
+## 核心功能
+
+### 1. 单词学习模块
+
+**单词卡片：**
+- 3D 翻转动画效果（使用 `graphicsLayer` + `rotationY`）
+- 正面：单词、音标、发音按钮
+- 背面：释义、例句、词性
+- 左右滑动切换单词（使用 `Modifier.swipeable` 或 `AnchoredDraggable`）
+- 左滑"已掌握"，右滑"需复习"
+- 卡片堆叠视觉效果
+
+**发音功能：**
+- 使用 `TextToSpeech` API 朗读单词
+- 支持语速调节（`setSpeechRate`：慢速0.5/正常1.0/快速1.5）
+- 点击时有波纹动画（`Modifier.clickable` 自带 ripple）
+
+**收藏功能：**
+- 星标收藏/取消
+- 收藏列表管理
+
+### 2. 练习测试模块
+
+**选择题：**
+- 单词选释义 或 释义选单词
+- 4个选项，选中后立即显示对错反馈
+- 使用颜色和图标表示正确/错误
+
+**填空题：**
+- 例句中单词用下划线代替
+- 支持提示功能（显示首字母）
+- 使用 `OutlinedTextField` 输入答案
+
+**听力题：**
+- 播放单词发音，选择对应单词
+- 支持重复播放（最多3次）
+
+**通用功能：**
+- 顶部答题进度指示（`LinearProgressIndicator`）
+- 每题30秒倒计时（`LaunchedEffect` + `delay`）
+- 练习结束显示成绩单（正确率、用时、错题回顾）
+- 错题自动加入复习列表
+
+### 3. 学习进度模块
+
+**每日统计：**
+- 今日学习单词数、正确率、学习时长
+- 与昨日对比（使用箭头图标和颜色变化）
+
+**图表展示：**
+- 使用 Vico 或 MPAndroidChart 绘制近7天学习曲线
+- 支持周/月数据切换
+
+**连续学习：**
+- 连续学习天数显示
+- 火焰图标动画（使用 `Lottie` 或 `AnimatedVectorDrawable`）
+- 断签提醒
+
+**词汇量统计：**
+- 总词汇量 / 已掌握 / 学习中 / 未学习
+- 使用 `Canvas` 绘制环形进度图
+
+**成就徽章：**
+- 学习天数成就（7/30/100/365天）
+- 词汇量成就（100/500/1000/5000词）
+- 正确率成就（连续10/50/100题全对）
+- 使用 Material Icons，获得时显示庆祝动画（`Confetti` 效果）
+
+### 4. 设置模块
+
+**学习设置：**
+- 每日目标（10/20/30/50词）
+- 学习提醒时间（使用 `TimePickerDialog`）
+- 发音语速、自动播放开关
+
+**显示设置：**
+- 主题切换（深色/浅色/跟随系统）
+- 动态取色开关（Material You）
+- 字体大小（小/中/大）
+
+**数据管理：**
+- 学习数据导出（JSON 格式）
+- 清除/重置记录（带确认对话框）
+
+## 设计要求
+
+**颜色主题：**
+- 主色调：温暖的蓝色（Primary）
+- 强调色：清新的绿色（Secondary）
+- 使用 `MaterialTheme.colorScheme` 定义颜色
+- 支持 Material You 动态取色和深色模式适配
+
+**字体规范：**
+- 使用系统默认字体或 Google Fonts
+- 使用 `sp` 单位支持系统字体缩放
+- 遵循 Material Design 3 排版规范（`MaterialTheme.typography`）
+
+**间距和尺寸：**
+- 按钮最小高度 48dp（符合无障碍标准）
+- 卡片圆角 16dp（`RoundedCornerShape`）
+- 使用 8dp 栅格系统设置边距和间距
+
+**动画效果：**
+- 弹性动画（`spring()` 动画规格）
+- 卡片翻转（`graphicsLayer { rotationY = ... }`）
+- 点击反馈（`Modifier.scale` + `animateFloatAsState`）
+- 触觉反馈（`HapticFeedback`）
+
+**加载状态：**
+- `CircularProgressIndicator` 加载指示
+- `Modifier.placeholder` 骨架屏效果（使用 Accompanist）
+- 空状态友好提示（使用插图和引导文案）
+
+## 本地通知
+- 使用 `WorkManager` 实现定时任务调度
+- 使用 `NotificationCompat` 创建通知
+- 每日固定时间学习提醒
+- 连续学习即将断签提醒
+- 创建专用通知渠道（Notification Channel）
+
+## 初始数据
+请包含至少 200 个常用英语单词（基础100 + 进阶50 + 高级50），每个单词包含音标、词性、释义、例句。可使用 Room 的 `createFromAsset()` 预填充数据库。
+
+## 性能优化
+- `LazyColumn` / `LazyVerticalGrid` 懒加载列表
+- 数据库操作在 `Dispatchers.IO` 执行
+- 合理使用 `remember` / `derivedStateOf` 优化重组
+- 使用 `collectAsStateWithLifecycle` 安全收集 Flow
+- 大列表使用 `key` 参数优化 diff 计算
+
+## 无障碍支持
+- 添加 `contentDescription`（`Modifier.semantics`）
+- 支持 TalkBack 屏幕阅读器
+- 支持系统字体缩放
+- 颜色对比度符合 WCAG 2.1 AA 标准
+- 触摸目标最小 48dp x 48dp
+
+## 依赖库建议
+```kotlin
+// build.gradle.kts (Module)
+dependencies {
+    // Compose BOM
+    implementation(platform("androidx.compose:compose-bom:2024.02.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material3:material3")
+    
+    // Navigation
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+    
+    // Room Database
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+    
+    // Hilt DI
+    implementation("com.google.dagger:hilt-android:2.50")
+    ksp("com.google.dagger:hilt-compiler:2.50")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    
+    // Charts (Vico)
+    implementation("com.patrykandpatrick.vico:compose-m3:1.14.0")
+    
+    // Lottie Animations
+    implementation("com.airbnb.android:lottie-compose:6.3.0")
+    
+    // DataStore Preferences
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+}
+```
+
+## 项目结构
+```
+app/
+├── src/main/
+│   ├── java/com/example/lingolearn/
+│   │   ├── data/
+│   │   │   ├── local/          # Room 数据库、DAO、Entity
+│   │   │   ├── repository/     # Repository 实现
+│   │   │   └── preferences/    # DataStore 偏好设置
+│   │   ├── domain/
+│   │   │   ├── model/          # 领域模型
+│   │   │   ├── repository/     # Repository 接口
+│   │   │   └── usecase/        # 用例
+│   │   ├── di/                 # Hilt 依赖注入模块
+│   │   ├── ui/
+│   │   │   ├── components/     # 可复用 Composable 组件
+│   │   │   ├── theme/          # Material 主题定义
+│   │   │   ├── navigation/     # 导航图
+│   │   │   ├── home/           # 首页模块
+│   │   │   ├── practice/       # 练习模块
+│   │   │   ├── progress/       # 进度模块
+│   │   │   └── settings/       # 设置模块
+│   │   ├── util/               # 工具类
+│   │   └── LingoLearnApp.kt    # Application 类
+│   ├── res/
+│   │   ├── values/             # 字符串、颜色、主题资源
+│   │   └── raw/                # 预填充数据库文件
+│   └── AndroidManifest.xml
+└── build.gradle.kts
+```
+
+## 交付要求
+提供完整可运行的 Android Studio 项目，包含所有源代码和资源文件，应用能在模拟器和真机正常运行，所有核心功能完整可用，支持 Android 8.0 至 Android 14 的设备。
